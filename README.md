@@ -10,6 +10,15 @@ Tools to prepare and test energy measurements
 ```bash
 pip install -e .
 ```
+### How to use:
+- Get help:
+  - `$ cd measuring-tools/measuring_tools/comparative_tools/check_measures.py --help`
+- Ex1:
+  - `$ cd measuring-tools/measuring_tools/`
+  - `$ python comparative_tools/check_measures.py --path_clinmes='/path_to_files/' --path_clmag5a='/path_to_clmag5a/filename' --write_csv=True`
+- Ex2:
+  - `$ cd measuring-tools/measuring_tools/`
+  - `$ python merge_tools/merge_clinmes.py --path_clinmes_one='/path_to_files/' --path_clinmes_two='/path_to_files/' --path_dest='/path_dest/'`
 
 Feel like this: 
 ![alt text](measuring_tools/img/test.png)
