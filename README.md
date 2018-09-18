@@ -12,7 +12,7 @@ pip install -e .
 ```
 ### How to use:
 - Get help:
-  - `$ cd measuring-tools/measuring_tools/comparative_tools/check_measures.py --help`
+  - `$ python measuring-tools/measuring_tools/comparative_tools/check_measures.py --help`
 - Ex1:
   - `$ cd measuring-tools/measuring_tools/`
   - `$ python comparative_tools/check_measures.py --path_clinmes='/path_to_files/' --path_clmag5a='/path_to_clmag5a/filename' --write_csv=True`
