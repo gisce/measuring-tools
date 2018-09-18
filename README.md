@@ -12,5 +12,5 @@ pip install -e .
 ```
 
 Feel like this: 
+![alt text](measuring_tools/img/test.png)
 
-![picture](https://imgur.com/XcjnWvH)
