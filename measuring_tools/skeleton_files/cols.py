@@ -10,3 +10,8 @@ CLMAG5A_COLS = [
     'agree_dh', 'agree_tipo', 'provincia', 'timestamp', 'estacio', 'magnitud',
     'measure', 'npoints_clmag5a', 'm_tg', 'n_tg', 'm_notg', 'n_notg', 'res'
 ]
+
+AGGREGATION_COLS = [
+    'distribuidora', 'comercialitzadora', 'agree_tensio', 'agree_tarifa',
+    'agree_dh', 'agree_tipo', 'provincia'
+]
