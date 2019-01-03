@@ -49,6 +49,7 @@ def setup_logger_fail():
     logger.setLevel(logging.INFO)
     return logger
 
+# Set factura_obj.check_profilable_distri() or factura_obj.check_profilable_comer()
 logger = setup_logger()
 logger_fail = setup_logger_fail()
 logger.info('#### START PROFILING #{} factures'.format(len(factura_ids)))
