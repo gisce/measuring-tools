@@ -9,6 +9,7 @@ def read_CLMAG5A(path):
             'distribuidora': 'str',
             'comercialitzadora': 'str',
             'agree_tipo': 'str',
+            'agree_tarifa': 'str',
         }
     )
 
@@ -22,6 +23,7 @@ def read_CLINME(path):
             'distribuidora': 'str',
             'comercialitzadora': 'str',
             'agree_tipo': 'str',
+            'agree_tarifa': 'str',
         }
     )
 

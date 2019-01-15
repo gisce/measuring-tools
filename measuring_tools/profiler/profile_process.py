@@ -12,7 +12,6 @@ df = '2018-12-31'
 cups_ids =  [459, 862, 917, 1145]
 factura_obj = c.model('giscedata.facturacio.factura')
 
-
 # All invoices by dates
 """factura_ids = factura_obj.search([
     ('data_inici', '<=', df), ('data_final', '>=', di), 

@@ -15,3 +15,5 @@ AGGREGATION_COLS = [
     'distribuidora', 'comercialitzadora', 'agree_tensio', 'agree_tarifa',
     'agree_dh', 'agree_tipo', 'provincia'
 ]
+
+AGGREGATION_TARIFF_COLS = ['agree_tarifa', 'agree_dh']
