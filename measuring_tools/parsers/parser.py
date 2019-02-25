@@ -28,3 +28,36 @@ def read_CLINME(path):
     )
 
     return df_clinme
+
+def read_CLMAG(path):
+    #CLMAG consumptions positions
+    positions = [x for x in xrange(11, 107, 4)]
+    R1_code = ';R1;'
+    consumptions_clmag = []
+
+    lines = []
+    with open(path, 'r') as filename:
+        for line in filename:
+            lines.append(str(line))
+    clmag_aggs = [agg[11:35] for agg in lines]
+    df_aggs = pd.DataFrame(data=clmag_aggs).drop_duplicates()
+    clmag_aggs = [x[0] for x in df_aggs.values.tolist()]
+    aggregation_dict = dict.fromkeys(cols.CLMAG_COLS)
+    for agg in clmag_aggs:
+        consumption_iter = 0
+        consumption_clmag = 0
+        for x in lines:
+            if agg in x and R1_code not in x:
+                consumption_tmp = x.split(';')
+                for pos in positions:
+                    try:
+                        consumption_iter += int(consumption_tmp[pos])
+                    except:
+                        break
+                consumption_clmag += consumption_iter
+                consumption_iter = 0
+        aux = dict(zip(cols.CLMAG_COLS, agg.split(';')))
+        aux['measure'] = consumption_clmag
+        consumptions_clmag.append(aux)
+    return pd.DataFrame(data=consumptions_clmag)
+
