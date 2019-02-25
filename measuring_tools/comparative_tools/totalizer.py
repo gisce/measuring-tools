@@ -22,6 +22,8 @@ def totalizer(path_file, by_agg, by_tariff, write_csv):
                 df_file = dummy_df.copy()
             else:
                 df_file = df_file.append(dummy_df)
+    if 'CLMAG_' in path_file:
+        df_file = parser.read_CLMAG(path_file)
     else:
         df_file = parser.read_CLMAG5A(path_file)
     if by_agg:
