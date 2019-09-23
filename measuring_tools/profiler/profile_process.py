@@ -43,7 +43,63 @@ def chunks(_list, n):
         yield _list[i:i + n]
 
 
-def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores=False, verbose=True, n_chunks=1):
+def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores=False, verbose=True):
+    factura_obj = c.model('giscedata.facturacio.factura')
+    search_params_base = [
+        ('data_inici', '<=', df), ('data_final', '>=', di), ('state', '!=', 'draft')
+    ]
+    if server_type == 'comer':
+        search_params_base.append(('type', '=like', 'in%'))
+    elif server_type == 'distri':
+        search_params_base.append(('type', '=like', 'out%'))
+
+    search_params = search_params_base[:]
+    search_params.append(('tipo_rectificadora', 'in', ['N', 'R', 'RA']))
+
+    factura_ids = factura_obj.search(
+        search_params,
+        0, 0, 'origin_date_invoice asc'
+    )
+    print('# Factures: {}'.format(len(factura_ids)))
+    print('From {} to {}'.format(di, df))
+    if verbose:
+        response = raw_input("Will be profiled {} invoices are you sure? ('y'/'n'):  ".format(len(factura_ids)))
+        if response[0].lower() != 'y':
+            return False
+
+    logger.info('#### START PROFILING #{} factures'.format(len(factura_ids)))
+    for factura_id in tqdm(factura_ids):
+        try:
+            if factura_obj.check_profilable(factura_id):
+                factura_obj.encua_perfilacio([factura_id])
+                logger.info('# Profiled factura_id: {}'.format(factura_id))
+            else:
+                logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
+        except Exception as err:
+            logger_fail.error('# ERROR: {}'.format(factura_id))
+    if anuladores:
+        search_params = search_params_base[:]
+        search_params.append(('tipo_rectificadora', 'in', ['B', 'A', 'BRA']))
+
+        factura_ids = factura_obj.search(
+            search_params,
+            0, 0, 'origin_date_invoice asc'
+        )
+        logger.info('#### START PROFILING ANULADORES #{} factures'.format(len(factura_ids)))
+        print('# Factures: {}'.format(len(factura_ids)))
+        print('From {} to {}'.format(di, df))
+        for factura_id in tqdm(factura_ids):
+            try:
+                if factura_obj.check_profilable(factura_id):
+                    factura_obj.encua_perfilacio([factura_id])
+                    logger.info('# Profiled ANULADORA factura_id: {}'.format(factura_id))
+                else:
+                    logger_fail.info('# NO Profilable ANULADORA factura_id: {}'.format(factura_id))
+            except Exception as err:
+                logger_fail.error('# ERROR: {}'.format(factura_id))
+
+
+def profile_process_chunks(c, di, df, logger, logger_fail, server_type=None, anuladores=False, verbose=True, n_chunks=1):
     factura_obj = c.model('giscedata.facturacio.factura')
     search_params_base = [
         ('data_inici', '<=', df), ('data_final', '>=', di), ('state', '!=', 'draft')
@@ -73,16 +129,11 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
     logger.info('#### START PROFILING #{} factures'.format(len(factura_ids)))
     for factura_ids_chunks in tqdm(chunks(factura_ids, n_chunks)):
         try:
-            for factura_id in factura_ids_chunks:
-                if factura_obj.check_profilable(factura_id):
-                    logger.info('# Profiled factura_id: {}'.format(factura_id))
-                else:
-                    factura_ids_chunks.remove(factura_id)
-                    logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
+            factura_obj.encua_perfilacio(factura_ids_chunks)
+            logger.info('# Profiled factures: {}'.format(factura_ids_chunks))
         except Exception as err:
             logger_fail.error('# ERROR: {}'.format(factura_ids_chunks))
-        finally:
-            factura_obj.encua_perfilacio(factura_ids_chunks)
+
     if anuladores:
         search_params = search_params_base[:]
         search_params.append(('tipo_rectificadora', 'in', ['B', 'A', 'BRA']))
@@ -168,7 +219,7 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
 @click.option('-c', '--cups_mode', type=str, default=None, help='Profile one CUPS, cups_number or cups_id')
 @click.option('-l', '--logs_path', type=str, default=None, help='Loggers path')
 @click.option('-v', '--verbose', type=bool, default=True, help='Verbose mode (default:True)')
-@click.option('--chunks', type=int, default=1, help='Queue profiles with n chunks (default:1)')
+@click.option('--chunks', type=int, default=0, help='Queue profiles with n chunks (default:0)')
 def profile(server, user, dbname, password, di, df, server_type, anuladores, factura_mode, cups_mode, logs_path,
             verbose, chunks):
     c = conn(server, dbname, user, password)
@@ -184,7 +235,10 @@ def profile(server, user, dbname, password, di, df, server_type, anuladores, fac
         profile_one_cups_process(c, cups_mode, di, df, logger, logger_fail)
         return True
     else:
-        profile_process(c, di, df, logger, logger_fail, server_type, anuladores, verbose, chunks)
+        if chunks:
+            profile_process_chunks(c, di, df, logger, logger_fail, server_type, anuladores, verbose, chunks)
+        else:
+            profile_process(c, di, df, logger, logger_fail, server_type, anuladores, verbose)
 
 
 if __name__ == '__main__':
