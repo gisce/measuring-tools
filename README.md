@@ -23,3 +23,5 @@ pip install -e .
 Feel like this: 
 ![alt text](measuring_tools/img/test.png)
 
+- Profiler example:
+  - `$ python profile_process.py -s http://localhost:18069 -u admin -d database_name -p passowrd --di 2018-09-01 --df 2018-12-31 --server_type comer --anuladores True`
