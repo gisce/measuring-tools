@@ -38,7 +38,12 @@ def setup_logger_fail(log_path):
     return logger
 
 
-def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores=False, verbose=True):
+def chunks(_list, n):
+    for i in range(0, len(_list), n):
+        yield _list[i:i + n]
+
+
+def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores=False, verbose=True, n_chunks=1):
     factura_obj = c.model('giscedata.facturacio.factura')
     search_params_base = [
         ('data_inici', '<=', df), ('data_final', '>=', di), ('state', '!=', 'draft')
@@ -58,12 +63,15 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
     print('# Factures: {}'.format(len(factura_ids)))
     print('From {} to {}'.format(di, df))
     if verbose:
-        response = raw_input("Will be profiled {} invoices are you sure? ('y'/'n'):  ".format(len(factura_ids)))
+        response = raw_input(
+            "Will be profiled {} invoices with {} chunks, are you sure? ('y'/'n'):  ".format(
+                len(factura_ids), n_chunks)
+        )
         if response[0].lower() != 'y':
             return False
 
     logger.info('#### START PROFILING #{} factures'.format(len(factura_ids)))
-    for factura_id in tqdm(factura_ids):
+    for factura_id in tqdm(chunks(factura_ids, n_chunks)):
         try:
             if factura_obj.check_profilable(factura_id):
                 factura_obj.encua_perfilacio([factura_id])
@@ -71,7 +79,7 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
             else:
                 logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
-            logger_fail.info('# ERROR: {}'.format(str(err)))
+            logger_fail.error('# ERROR: {}'.format(factura_id))
     if anuladores:
         search_params = search_params_base[:]
         search_params.append(('tipo_rectificadora', 'in', ['B', 'A', 'BRA']))
@@ -91,7 +99,7 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
                 else:
                     logger_fail.info('# NO Profilable ANULADORA factura_id: {}'.format(factura_id))
             except Exception as err:
-                logger_fail.info('# ERROR: {}'.format(str(err)))
+                logger_fail.error('# ERROR: {}'.format(factura_id))
 
 
 def profile_one_invoice_process(c, factura, logger, logger_fail):
@@ -110,7 +118,7 @@ def profile_one_invoice_process(c, factura, logger, logger_fail):
             else:
                 logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
-            logger_fail.info('# ERROR: {}'.format(str(err)))
+            logger_fail.error('# ERROR: {}'.format(factura_id))
 
 
 def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
@@ -141,7 +149,7 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
             else:
                 logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
-            logger_fail.info('# ERROR: {}'.format(str(err)))
+            logger_fail.error('# ERROR: {}'.format(factura_id))
 
 
 @click.command()
@@ -157,6 +165,7 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
 @click.option('-c', '--cups_mode', type=str, default=None, help='Profile one CUPS, cups_number or cups_id')
 @click.option('-l', '--logs_path', type=str, default=None, help='Loggers path')
 @click.option('-v', '--verbose', type=bool, default=True, help='Verbose mode (default:True)')
+@click.option('--chunks', type=int, default=1, help='Queue profiles with n chunks (default:1)')
 def profile(server, user, dbname, password, di, df, server_type, anuladores, factura_mode, cups_mode, logs_path,
             verbose):
     c = conn(server, dbname, user, password)
@@ -172,7 +181,7 @@ def profile(server, user, dbname, password, di, df, server_type, anuladores, fac
         profile_one_cups_process(c, cups_mode, di, df, logger, logger_fail)
         return True
     else:
-        profile_process(c, di, df, logger, logger_fail, server_type, anuladores, verbose)
+        profile_process(c, di, df, logger, logger_fail, server_type, anuladores, verbose, chunks)
 
 
 if __name__ == '__main__':
