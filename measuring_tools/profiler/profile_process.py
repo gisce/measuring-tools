@@ -71,15 +71,18 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
             return False
 
     logger.info('#### START PROFILING #{} factures'.format(len(factura_ids)))
-    for factura_id in tqdm(chunks(factura_ids, n_chunks)):
+    for factura_ids_chunks in tqdm(chunks(factura_ids, n_chunks)):
         try:
-            if factura_obj.check_profilable(factura_id):
-                factura_obj.encua_perfilacio([factura_id])
-                logger.info('# Profiled factura_id: {}'.format(factura_id))
-            else:
-                logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
+            for factura_id in factura_ids_chunks:
+                if factura_obj.check_profilable(factura_id):
+                    logger.info('# Profiled factura_id: {}'.format(factura_id))
+                else:
+                    factura_ids_chunks.remove(factura_id)
+                    logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
-            logger_fail.error('# ERROR: {}'.format(factura_id))
+            logger_fail.error('# ERROR: {}'.format(factura_ids_chunks))
+        finally:
+            factura_obj.encua_perfilacio(factura_ids_chunks)
     if anuladores:
         search_params = search_params_base[:]
         search_params.append(('tipo_rectificadora', 'in', ['B', 'A', 'BRA']))
