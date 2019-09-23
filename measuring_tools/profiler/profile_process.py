@@ -38,7 +38,7 @@ def setup_logger_fail(log_path):
     return logger
 
 
-def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores=False):
+def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores=False, verbose=True):
     factura_obj = c.model('giscedata.facturacio.factura')
     search_params_base = [
         ('data_inici', '<=', df), ('data_final', '>=', di), ('state', '!=', 'draft')
@@ -57,6 +57,10 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
     )
     print('# Factures: {}'.format(len(factura_ids)))
     print('From {} to {}'.format(di, df))
+    if verbose:
+        response = raw_input("Will be profiled {} invoices are you sure? ('y'/'n'):  ".format(len(factura_ids)))
+        if response[0].lower() != 'y':
+            return False
 
     logger.info('#### START PROFILING #{} factures'.format(len(factura_ids)))
     for factura_id in tqdm(factura_ids):
@@ -64,7 +68,6 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
             if factura_obj.check_profilable(factura_id):
                 factura_obj.encua_perfilacio([factura_id])
                 logger.info('# Profiled factura_id: {}'.format(factura_id))
-                tqdm.write('Enqueued: {}'.format(factura_id))
             else:
                 logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
@@ -85,7 +88,6 @@ def profile_process(c, di, df, logger, logger_fail, server_type=None, anuladores
                 if factura_obj.check_profilable(factura_id):
                     factura_obj.encua_perfilacio([factura_id])
                     logger.info('# Profiled ANULADORA factura_id: {}'.format(factura_id))
-                    tqdm.write('Enqueued: {}'.format(factura_id))
                 else:
                     logger_fail.info('# NO Profilable ANULADORA factura_id: {}'.format(factura_id))
             except Exception as err:
@@ -105,7 +107,6 @@ def profile_one_invoice_process(c, factura, logger, logger_fail):
             if factura_obj.check_profilable(factura_id):
                 factura_obj.encua_perfilacio([factura_id])
                 logger.info('# Profiled factura_id: {}'.format(factura_id))
-                tqdm.write('Enqueued: {}'.format(factura_id))
             else:
                 logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
@@ -137,7 +138,6 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
             if factura_obj.check_profilable(factura_id):
                 factura_obj.encua_perfilacio([factura_id])
                 logger.info('# Profiled factura_id: {}'.format(factura_id))
-                tqdm.write('Enqueued: {}'.format(factura_id))
             else:
                 logger_fail.info('# NO Profilable factura_id: {}'.format(factura_id))
         except Exception as err:
@@ -156,12 +156,15 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
 @click.option('-f', '--factura_mode', type=int, default=None, help='Profile one invoice, invoice_number or invoice_id')
 @click.option('-c', '--cups_mode', type=str, default=None, help='Profile one CUPS, cups_number or cups_id')
 @click.option('-l', '--logs_path', type=str, default=None, help='Loggers path')
-def profile(server, user, dbname, password, di, df, server_type, anuladores, factura_mode, cups_mode, logs_path):
+@click.option('-v', '--verbose', type=bool, default=True, help='Verbose mode (default:True)')
+def profile(server, user, dbname, password, di, df, server_type, anuladores, factura_mode, cups_mode, logs_path,
+            verbose):
     c = conn(server, dbname, user, password)
     if c:
         print('Connected to {}'.format(c))
     logger = setup_logger(logs_path)
     logger_fail = setup_logger_fail(logs_path)
+    assert server_type == 'comer' or server_type == 'distri'
     if factura_mode:
         profile_one_invoice_process(c, factura_mode, logger, logger_fail)
         return True
@@ -169,7 +172,7 @@ def profile(server, user, dbname, password, di, df, server_type, anuladores, fac
         profile_one_cups_process(c, cups_mode, di, df, logger, logger_fail)
         return True
     else:
-        profile_process(c, di, df, logger, logger_fail, server_type, anuladores)
+        profile_process(c, di, df, logger, logger_fail, server_type, anuladores, verbose)
 
 
 if __name__ == '__main__':
