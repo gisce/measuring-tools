@@ -1,3 +1,4 @@
 pandas
 numpy
 click==6.7
+termcolor

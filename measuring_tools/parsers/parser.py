@@ -18,7 +18,8 @@ def read_CLMAG5A(path):
 
 def read_CLINME(path):
     df_clinme = pd.read_csv(
-        path, sep=';', names=cols.CLINME_COLS,
+        open(path, 'rU'), sep=';', names=cols.CLINME_COLS,
+        engine='c',
         dtype={
             'distribuidora': 'str',
             'comercialitzadora': 'str',

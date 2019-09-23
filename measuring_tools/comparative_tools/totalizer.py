@@ -16,7 +16,8 @@ from measuring_tools.skeleton_files import cols
 def totalizer(path_file, by_agg, by_tariff, write_csv):
     df_file = pd.DataFrame(data={})
     if 'CLINME' in path_file:
-        for _file in listdir(path_file):
+        for x, _file in enumerate(listdir(path_file)):
+            print _file
             dummy_df = parser.read_CLINME(path_file + '/' + _file)
             if df_file.empty:
                 df_file = dummy_df.copy()
