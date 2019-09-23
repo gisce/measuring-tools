@@ -167,7 +167,7 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
 @click.option('-v', '--verbose', type=bool, default=True, help='Verbose mode (default:True)')
 @click.option('--chunks', type=int, default=1, help='Queue profiles with n chunks (default:1)')
 def profile(server, user, dbname, password, di, df, server_type, anuladores, factura_mode, cups_mode, logs_path,
-            verbose):
+            verbose, chunks):
     c = conn(server, dbname, user, password)
     if c:
         print('Connected to {}'.format(c))
