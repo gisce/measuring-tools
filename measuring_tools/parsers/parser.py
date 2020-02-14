@@ -62,3 +62,7 @@ def read_CLMAG(path):
         consumptions_clmag.append(aux)
     return pd.DataFrame(data=consumptions_clmag)
 
+def read_MAGRE(path):
+    df_magre = pd.read_csv(path, sep=';', header=None)
+    df_magre[4] = df_magre[4].str.strip(' ')
+    return df_magre
