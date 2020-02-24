@@ -27,8 +27,8 @@ def totalizer(path_file, by_agg, by_tariff, write_csv):
         df_file = parser.read_CLMAG(path_file)
     elif 'MAGRE_' in path_file:
         df_file = parser.read_MAGRE(path_file)
-        df_file['total'] = df_file.apply(lambda row: sum([row[5*n-1] for n in range(2, 27)]), axis=1)
-        df_file = df_file.groupby([4, 5]).aggregate({'total': 'sum'}).reset_index()
+        df_file['total'] = df_file.apply(lambda row: sum([row[5*n-2] for n in range(2, 27)]), axis=1)
+        df_file = df_file.groupby([4, 5, 6]).aggregate({'total': 'sum'}).reset_index()
         print(colored(df_file, 'green'))
         return True
     else:
