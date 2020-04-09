@@ -183,7 +183,7 @@ def profile_one_cups_process(c, cups, di, df, logger, logger_fail):
         cups_ids = [int(cups)]
 
     factura_ids = factura_obj.search([
-        ('cups_ids', 'in', cups_ids),
+        ('cups_id', 'in', cups_ids),
         ('data_inici', '<=', df),
         ('data_final', '>=', di),
         ('type', '=like', 'in%'),
